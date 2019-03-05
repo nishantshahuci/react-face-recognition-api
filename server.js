@@ -1,5 +1,6 @@
 const express = require('express');
 const bodyParser = require('body-parser');
+const bcrypt = require('bcrypt-nodejs');
 
 const app = express();
 
@@ -11,7 +12,6 @@ const database = {
       id: '123',
       name: 'John',
       email: 'john@gmail.com',
-      password: 'cookies',
       entries: 0,
       joined: new Date()
     },
@@ -19,35 +19,55 @@ const database = {
       id: '124',
       name: 'Sally',
       email: 'sally@gmail.com',
-      password: 'bananas',
       entries: 0,
       joined: new Date()
+    }
+  ],
+  login: [
+    {
+      id: '987',
+      hash: '',
+      email: 'john@gmail.com'
     }
   ]
 };
 
 app.get('/', (req, res) => {
-  res.send(database.users);
+  res.send(database);
 });
 
 app.post('/signin', (req, res) => {
-  if (
-    req.body.email === database.users[0].email &&
-    req.body.password === database.users[0].password
-  ) {
-    res.json('success');
-  } else {
-    res.status(400).json('error signing in');
+  let hash = '';
+  database.login.forEach(user => {
+    if (user.email === req.body.email) {
+      hash = user.hash;
+    }
+  });
+  if (!hash) {
+    return res.status(400).json('error signing in');
   }
+  bcrypt.compare(req.body.password, hash, function(error, response) {
+    if (response) {
+      return res.status(200).json('Success');
+    } else {
+      return res.status(400).json('Incorrect username or password');
+    }
+  });
 });
 
 app.post('/register', (req, res) => {
   const { email, name, password } = req.body;
+  bcrypt.hash(password, null, null, function(err, hash) {
+    database.login.push({
+      id: '987',
+      email: email,
+      hash: hash
+    });
+  });
   database.users.push({
     id: '123',
     name: name,
     email: email,
-    password: password,
     entries: 0,
     joined: new Date()
   });
