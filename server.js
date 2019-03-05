@@ -54,6 +54,27 @@ app.post('/register', (req, res) => {
   res.json(database.users[database.users.length - 1]);
 });
 
+app.get('/profile/:id', (req, res) => {
+  const { id } = req.params;
+  database.users.forEach(user => {
+    if (user.id === id) {
+      return res.json(user);
+    }
+  });
+  return res.status(404).json('No user found');
+});
+
+app.post('/image', (req, res) => {
+  const { id } = req.body;
+  database.users.forEach(user => {
+    if (user.id === id) {
+      user.entries++;
+      return res.json(user.entries);
+    }
+  });
+  return res.status(404).json('No user found');
+});
+
 app.listen(3000, () => {
   console.log('App is running on port 3000');
 });
