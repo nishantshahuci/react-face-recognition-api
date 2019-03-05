@@ -51,7 +51,9 @@ app.post('/signin', (req, res) => {
   }
   bcrypt.compare(req.body.password, hash, function(error, response) {
     if (response) {
-      return res.status(200).json('Success');
+      return res
+        .status(200)
+        .json(database.users.find(user => user.email === req.body.email));
     } else {
       return res.status(400).json('Incorrect username or password');
     }
