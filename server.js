@@ -89,7 +89,7 @@ app.get('/profile/:id', (req, res) => {
   return res.status(404).json('No user found');
 });
 
-app.post('/image', (req, res) => {
+app.put('/image', (req, res) => {
   const { id } = req.body;
   database.users.forEach(user => {
     if (user.id === id) {
