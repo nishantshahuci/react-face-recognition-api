@@ -23,33 +23,7 @@ app.use(cors());
 
 app.use(bodyParser.json());
 
-const database = {
-  users: [
-    {
-      id: '123',
-      name: 'John',
-      email: 'john@gmail.com',
-      entries: 0,
-      joined: new Date()
-    },
-    {
-      id: '124',
-      name: 'Sally',
-      email: 'sally@gmail.com',
-      entries: 0,
-      joined: new Date()
-    }
-  ],
-  login: [
-    {
-      id: '987',
-      hash: '',
-      email: 'john@gmail.com'
-    }
-  ]
-};
-
-app.get('/', (req, res) => res.send(database));
+app.get('/', (req, res) => res.send('it is working'));
 
 app.post('/signin', signIn.handleSignIn(db, bcrypt));
 
