@@ -49,46 +49,53 @@ app.get('/', (req, res) => {
 });
 
 app.post('/signin', (req, res) => {
-  let hash = '';
-  database.login.forEach(user => {
-    if (user.email === req.body.email) {
-      hash = user.hash;
-    }
-  });
-  if (!hash) {
-    return res.status(400).json('error signing in');
-  }
-  bcrypt.compare(req.body.password, hash, function(error, response) {
-    if (response) {
-      return res
-        .status(200)
-        .json(database.users.find(user => user.email === req.body.email));
-    } else {
-      return res.status(400).json('Incorrect username or password');
-    }
-  });
+  db.select('email', 'hash')
+    .from('login')
+    .where('email', req.body.email)
+    .then(data => {
+      const isValid = bcrypt.compareSync(req.body.password, data[0].hash);
+      if (isValid) {
+        return db
+          .select('*')
+          .from('users')
+          .where('email', req.body.email)
+          .then(user => {
+            res.status(200).json(user[0]);
+          })
+          .catch(err => res.status(400).json('Uable to get user'));
+      } else {
+        return res.status(400).json('Wrong credentials');
+      }
+    })
+    .catch(err => res.status(400).json('Wrong credentials'));
 });
 
 app.post('/register', (req, res) => {
   const { email, name, password } = req.body;
-  bcrypt.hash(password, null, null, function(err, hash) {
-    database.login.push({
-      id: '987',
-      email: email,
-      hash: hash
-    });
-  });
-  db('users')
-    .returning('*')
-    .insert({
-      name: name,
-      email: email,
-      joined: new Date()
-    })
-    .then(user => {
-      res.status(201).json(user[0]);
-    })
-    .catch(err => res.status(400).json('Unable to register'));
+  const hash = bcrypt.hashSync(password);
+  db.transaction(trx => {
+    trx
+      .insert({
+        hash: hash,
+        email: email
+      })
+      .into('login')
+      .returning('email')
+      .then(loginEmail => {
+        return trx('users')
+          .returning('*')
+          .insert({
+            name: name,
+            email: loginEmail[0],
+            joined: new Date()
+          })
+          .then(user => {
+            res.status(201).json(user[0]);
+          });
+      })
+      .then(trx.commit)
+      .catch(trx.rollback);
+  }).catch(err => res.status(400).json('Unable to register'));
 });
 
 app.get('/profile/:id', (req, res) => {
