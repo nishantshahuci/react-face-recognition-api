@@ -1,5 +1,5 @@
 module.exports.handleSignIn = (db, bcrypt) => (req, res) => {
-  const { emmail, password } = req.body;
+  const { email, password } = req.body;
   if (!email || !password) return res.status(400).json('Invalid form data');
   db.select('email', 'hash')
     .from('login')
