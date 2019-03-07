@@ -10,7 +10,7 @@ module.exports.handleApiCall = (req, res) => {
     .then(data => {
       res.json(data);
     })
-    .catch(err => res.status(400).json(`Unable to work with api: ${err}`));
+    .catch(err => res.status(400).json('Unable to work with api'));
 };
 
 module.exports.handleImage = db => (req, res) => {
